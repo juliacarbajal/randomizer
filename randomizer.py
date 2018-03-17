@@ -114,7 +114,6 @@ else:
 		finalBlock, nAleft, nBleft = Randomize(nAlast, nBlast, maxRepFinal, nAleft, nBleft)
 		randomizedList += finalBlock
 		
-	#randomizedList = ",".join([randomizedList[i] for i in range(0, len(randomizedList))])
 	print randomizedList
 	print len(randomizedList)
 	
