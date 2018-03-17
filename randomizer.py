@@ -33,6 +33,7 @@ nBlocksFloor = math.floor(nBlocks)
 random.shuffle(listA)
 random.shuffle(listB)
 
+# FUNCTIONS
 # This function checks how many repetitions of A and B appeared last in a sequence:
 def CheckLastSequence(sequence):
 	lastIsA = sequence[-1].count('A')
@@ -52,18 +53,22 @@ def CheckLastSequence(sequence):
 		nAlast = 0
 		nBlast = nsame
 	return nAlast, nBlast
-	
+
+# This function initializes a block based on constraints and previous blocks.
 def InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft):
 	blockList = ''
+	# If last block finished with A sequence:
 	if nAlast >0:
 		addA = random.choice(range(0,maxRep-nAlast+1))
 		addB = random.choice(range(1,maxRep+1))
 		blockList += ('A'*addA)+('B'*addB)
+	# If last block finished with B sequence:
 	elif nBlast >0:
 		addA = 0
 		addB = random.choice(range(0,maxRep-nBlast+1))
 		blockList += ('B'*addB)
-	else: # This case is the first block
+	# If it is the first block:
+	else:
 		addA = 0
 		addB = random.choice([0,1]) # Random chance of starting with A or B
 		if addB == 1:
@@ -72,15 +77,8 @@ def InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft):
 	nAleft -= addA
 	nBleft -= addB
 	return blockList, nAleft, nBleft
-	
-# RANDOMIZE
-nAlast = 0
-nBlast = 0
-	
-for block in range(1,int(nBlocksFloor)+1):
-	nAleft = maxAperBlock
-	nBleft = nAleft
-	# Initialize the block taking into account the last items of previous block:
+
+def Randomize(nAlast, nBlast, maxRep, nAleft, nBleft):
 	blockList, nAleft, nBleft = InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft)
 	while (nAleft>0 or nBleft>0):
 		addA = min(nAleft,random.choice(range(1,maxRep+1)))
@@ -89,21 +87,28 @@ for block in range(1,int(nBlocksFloor)+1):
 		blockList += ('B'*addB) # Add 1 or 2 elements from list B
 		nAleft -= addA
 		nBleft -= addB
-	print blockList
+	return blockList, nAleft, nBleft
+	
+# RANDOMIZE
+nAlast = 0
+nBlast = 0
+
+randomizedList = ''
+
+# Full blocks:
+for block in range(1,int(nBlocksFloor)+1):
+	nAleft = maxAperBlock
+	nBleft = nAleft
+	blockList, nAleft, nBleft = Randomize(nAlast, nBlast, maxRep, nAleft, nBleft)
+	randomizedList += blockList
 	nAlast, nBlast = CheckLastSequence(blockList)
 
-
-# Last block, if incomplete:
+# Last block (only applies if list incomplete due to constraints):
 if nBlocks > nBlocksFloor:
 	nAleft = nItemsA - block*maxAperBlock
 	nBleft = nAleft
 	maxRepFinal = min(maxRep,math.ceil(nAleft))
-	blockList, nAleft, nBleft = InitializeBlock(nAlast, nBlast, maxRepFinal, nAleft, nBleft)
-	while (nAleft>0 or nBleft>0):
-		addA = min(nAleft,random.choice(range(1,maxRepFinal+1)))
-		addB = min(nBleft,random.choice(range(1,maxRepFinal+1)))
-		blockList+=('A'*addA)
-		blockList+=('B'*addB)
-		nAleft -= addA
-		nBleft -= addB
-	print blockList
+	finalBlock, nAleft, nBleft = Randomize(nAlast, nBlast, maxRepFinal, nAleft, nBleft)
+	randomizedList += finalBlock
+
+print randomizedList
