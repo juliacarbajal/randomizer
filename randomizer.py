@@ -7,19 +7,24 @@ listA = []
 with open('listA.txt') as f:
 	for line in f:
 		listA.append(line.strip())
-nItemsA = 23#len(listA)
+
 # List B
 listB = []
 with open('listB.txt') as f:
 	for line in f:
 		listB.append(line.strip())
-nItemsB = 23#len(listB)
-if nItemsA != nItemsB:
-	print 'Warning: Number of items not equal! Cannot compute randomization.'
 
-# CONSTRAINTS
+# Shuffle the lists
+random.shuffle(listA)
+random.shuffle(listB)
+
+# NUMBER OF ITEMS
+nItemsA = len(listA)
+nItemsB = len(listB)
+
+# DEFINE CONSTRAINTS
 # Max number of same kind in a row:
-maxRep = 3
+maxRep = 2
 
 # Balance every K trials:
 maxAperBlock = maxRep+1
@@ -28,10 +33,6 @@ balanceK = float(maxAperBlock*2)
 # Number of blocks
 nBlocks = 2*nItemsA/balanceK
 nBlocksFloor = math.floor(nBlocks)
-
-# First shuffle of lists
-random.shuffle(listA)
-random.shuffle(listB)
 
 # FUNCTIONS
 # This function checks how many repetitions of A and B appeared last in a sequence:
@@ -59,13 +60,13 @@ def InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft):
 	blockList = ''
 	# If last block finished with A sequence:
 	if nAlast >0:
-		addA = random.choice(range(0,maxRep-nAlast+1))
+		addA = random.choice(range(0,max(maxRep-nAlast+1,1)))
 		addB = random.choice(range(1,maxRep+1))
 		blockList += ('A'*addA)+('B'*addB)
 	# If last block finished with B sequence:
 	elif nBlast >0:
 		addA = 0
-		addB = random.choice(range(0,maxRep-nBlast+1))
+		addB = random.choice(range(0,max(maxRep-nBlast+1,1)))
 		blockList += ('B'*addB)
 	# If it is the first block:
 	else:
@@ -90,25 +91,42 @@ def Randomize(nAlast, nBlast, maxRep, nAleft, nBleft):
 	return blockList, nAleft, nBleft
 	
 # RANDOMIZE
-nAlast = 0
-nBlast = 0
+if nItemsA != nItemsB:
+	print 'Error: Number of items in lists is not equal! Cannot compute randomization.'
+else:
+	nAlast = 0
+	nBlast = 0
+	randomizedList = ''
 
-randomizedList = ''
+	# Complete blocks:
+	for block in range(1,int(nBlocksFloor)+1):
+		nAleft = maxAperBlock
+		nBleft = nAleft
+		blockList, nAleft, nBleft = Randomize(nAlast, nBlast, maxRep, nAleft, nBleft)
+		randomizedList += blockList
+		nAlast, nBlast = CheckLastSequence(blockList)
 
-# Full blocks:
-for block in range(1,int(nBlocksFloor)+1):
-	nAleft = maxAperBlock
-	nBleft = nAleft
-	blockList, nAleft, nBleft = Randomize(nAlast, nBlast, maxRep, nAleft, nBleft)
-	randomizedList += blockList
-	nAlast, nBlast = CheckLastSequence(blockList)
-
-# Last block (only applies if list incomplete due to constraints):
-if nBlocks > nBlocksFloor:
-	nAleft = nItemsA - block*maxAperBlock
-	nBleft = nAleft
-	maxRepFinal = min(maxRep,math.ceil(nAleft))
-	finalBlock, nAleft, nBleft = Randomize(nAlast, nBlast, maxRepFinal, nAleft, nBleft)
-	randomizedList += finalBlock
-
-print randomizedList
+	# Last block (only applies if list incomplete due to constraints):
+	if nBlocks > nBlocksFloor:
+		nAleft = nItemsA - block*maxAperBlock
+		nBleft = nItemsB - block*maxAperBlock
+		maxRepFinal = int(min(maxRep,math.ceil(nAleft)))
+		finalBlock, nAleft, nBleft = Randomize(nAlast, nBlast, maxRepFinal, nAleft, nBleft)
+		randomizedList += finalBlock
+		
+	#randomizedList = ",".join([randomizedList[i] for i in range(0, len(randomizedList))])
+	print randomizedList
+	print len(randomizedList)
+	
+	# Assign values from lists:
+	A = 0
+	B = 0
+	randomizedItems = []
+	for item in randomizedList:
+		if item == 'A':
+			randomizedItems.append(listA[A])
+			A += 1
+		else:
+			randomizedItems.append(listB[B])
+			B += 1
+	print randomizedItems
