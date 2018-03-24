@@ -22,12 +22,13 @@ random.shuffle(listB)
 nItemsA = len(listA)
 nItemsB = len(listB)
 
+
 # DEFINE CONSTRAINTS
 # Max number of same kind in a row:
-maxRep = 2
+maxRep = 3
 
 # Balance every K trials:
-maxAperBlock = maxRep+1
+maxAperBlock = maxRep
 balanceK = float(maxAperBlock*2)
 
 # Number of blocks
