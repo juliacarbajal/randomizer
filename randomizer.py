@@ -19,13 +19,13 @@ random.shuffle(listA)
 random.shuffle(listB)
 
 # NUMBER OF ITEMS
-nItemsA = 21#len(listA)
-nItemsB = 21#len(listB)
+nItemsA = 20#len(listA)
+nItemsB = 30#len(listB)
 
 
 # DEFINE CONSTRAINTS
 # Max number of same kind in a row:
-maxRep = 3
+maxRep = 2
 
 if nItemsA == nItemsB:
 	# Number of blocks:
@@ -35,10 +35,21 @@ if nItemsA == nItemsB:
 	maxBperBlock = maxRep
 else:
 	# Note: if length of lists is unequal, behavior is for the moment unreliable (work in progress)
-	nBlocks = min(float(nItemsA),float(nItemsB),min(nItemsA/float(maxRep),nItemsB/float(maxRep)))
+	if max(nItemsA,nItemsB)/float(min(nItemsA,nItemsB)) - math.floor(max(nItemsA,nItemsB)/float(min(nItemsA,nItemsB))) <=0.5:
+		nBlocks = min(float(nItemsA),float(nItemsB),min(nItemsA/float(maxRep),nItemsB/float(maxRep)))
+	else:
+		nBlocks = min(float(nItemsA),float(nItemsB),max(nItemsA/float(maxRep),nItemsB/float(maxRep)))
 	nBlocksFloor = math.floor(nBlocks)
-	maxAperBlock = max(1,int(math.ceil(nItemsA/nBlocksFloor)))
-	maxBperBlock = max(1,int(math.ceil(nItemsB/nBlocksFloor)))
+	maxAperBlock = max(1,int(math.floor(nItemsA/nBlocks)))
+	maxBperBlock = max(1,int(math.floor(nItemsB/nBlocks)))
+
+maxAstart = maxAperBlock
+maxBstart = maxBperBlock
+if maxAperBlock < maxBperBlock:
+	maxAstart = maxAstart - 1
+elif maxAperBlock > maxBperBlock:
+	maxBstart = maxBstart -1
+		
 print nBlocks
 print nBlocksFloor
 print maxAperBlock
@@ -87,12 +98,20 @@ def InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft):
 		blockList += ('B'*addB)
 	nAleft -= addA
 	nBleft -= addB
+	# Correction to make sure we don't run out of B when initializing list:
+	if len(blockList)>0 and addB>0 and addB == 0:
+		nBleft += len(blockList)-maxBstart
+		blockList = 'B'*min(len(blockList),maxBstart)
 	return blockList, nAleft, nBleft
 
 def Randomize(nAlast, nBlast, maxRep, nAleft, nBleft):
-	blockList, nAleft, nBleft = InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft)
+	blockList, nAleft, nBleft = InitializeBlock(nAlast, nBlast, maxRep, nAleft, nBleft)		
 	while (nAleft>0 or nBleft>0):
-		addA = min(nAleft,random.choice(range(1,maxRep+1)))
+		if len(blockList) == 0:
+			# Correction to make sure we don't run out of A when initializing list:
+			addA = min(nAleft,random.choice(range(1,maxAstart+1)))
+		else:
+			addA = min(nAleft,random.choice(range(1,maxRep+1)))
 		addB = min(nBleft,random.choice(range(1,maxRep+1)))
 		blockList += ('A'*addA) # Add 1 or 2 elements from list A
 		blockList += ('B'*addB) # Add 1 or 2 elements from list B
